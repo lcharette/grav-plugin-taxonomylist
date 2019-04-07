@@ -53,6 +53,42 @@ class Taxonomylist
     }
 
     /**
+     * Get taxonomy list with only tags of the specified category.
+     *
+     * @param string $category
+     * @return array
+     */
+    public function getCategoryPagesTags($category = '')
+    {
+        $taxonomylist = Grav::instance()['taxonomy']->taxonomy();
+        $removed = [];
+
+        foreach ($taxonomylist['category'] as $cat => $entries) {
+            if ($cat != $category) {
+                $removed = array_merge($removed, array_keys($entries));
+                unset($taxonomylist['category'][$cat]);
+            }
+        }
+
+        foreach ($taxonomylist['tag'] as $tag => $entries) {
+            foreach ($entries as $url => $data) {
+                if (in_array($url, $removed)) {
+                    unset($taxonomylist['tag'][$tag][$url]);
+                }
+            }
+        }
+
+        // Remove empty tags
+        foreach ($taxonomylist['tag'] as $tag => $entries) {
+            if (empty($entries)) {
+                unset($taxonomylist['tag'][$tag]);
+            }
+        }
+
+        return $this->build($taxonomylist);
+    }
+
+    /**
      * @internal
      * @param array $taxonomylist
      * @return array
